@@ -1,0 +1,6 @@
+app-server/.gradle
+app-server/bin
+app-server/build
+
+data/*
+!data/.gitkeep

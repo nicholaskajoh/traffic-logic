@@ -1,0 +1,65 @@
+version: "3.8"
+
+services:
+  streaming-server:
+    container_name: streaming_server
+    build: ./streaming-server
+    ports:
+      - 1935:1935 # rtmp
+      - 8420:8420 # http (hls)
+    volumes:
+      - ./data/video-stream:/tmp/hls
+    depends_on:
+      - app-server
+    networks:
+      - traffic_logic
+    extra_hosts:
+      - host.docker.internal:host-gateway
+
+  app-server:
+    container_name: app_server
+    build: ./app-server
+    ports:
+      - 6969:8080
+    environment:
+      - TRAFFIC_LOGIC_PASSWORD=secret419
+    networks:
+      - traffic_logic
+
+#   ivy:
+#     container_name: ivy
+#     build: ../ivy
+
+#   filebeat:
+#     container_name: filebeat
+#     image: docker.elastic.co/beats/filebeat:8.4.1
+
+#   elasticsearch:
+#     container_name: elasticsearch
+#     image: docker.elastic.co/elasticsearch/elasticsearch:8.4.1
+#     expose:
+#       - 9200
+#       - 9300
+
+#   kibana:
+#     container_name: kibana
+#     image: docker.elastic.co/kibana/kibana:8.4.1
+#     ports:
+#       - 5601:5601
+#     volumes:
+#       - ./data-servers-config/kibana.yml:/usr/share/kibana/config/kibana.yml
+
+#   grafana:
+#     container_name: grafana
+#     image: grafana/grafana-oss:latest
+#     restart: always
+#     volumes:
+#       - grafana-data:/var/lib/grafana
+
+volumes:
+  grafana-data:
+    driver: local
+
+networks:
+ traffic_logic:
+  driver: bridge
