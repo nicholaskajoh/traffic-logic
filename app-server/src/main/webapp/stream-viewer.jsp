@@ -21,7 +21,7 @@
     controls
     preload="auto"
     autoplay
-    data-setup='{"liveui": true}'>
+    data-setup='{ "liveui": true, liveTracker: { trackingThreshold: 0 } }'>
       <source src="http://${tl_user}:${tl_password}@localhost:8420/hls/ivy.m3u8" type="application/x-mpegURL">
 
       <p class="vjs-no-js">
