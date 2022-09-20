@@ -1,0 +1,15 @@
+filebeat.inputs:
+- type: filestream
+  id: ivy-logs
+  paths:
+    - /var/log/ivy/job_*.log
+
+processors:
+- decode_json_fields:
+    fields: ["message"]
+    max_depth: 10
+    target: ""
+    add_error_key: true
+
+output.elasticsearch:
+  hosts: ["elasticsearch:9200"]

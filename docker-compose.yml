@@ -33,24 +33,45 @@ services:
     env_file:
       - ./configs/ivy.env
 
-#   filebeat:
-#     container_name: filebeat
-#     image: docker.elastic.co/beats/filebeat:8.4.1
+  filebeat:
+    container_name: filebeat
+    image: docker.elastic.co/beats/filebeat:8.4.1
+    entrypoint: "filebeat -e -strict.perms=false"
+    volumes:
+      - ./configs/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - ./data/logs:/var/log/ivy:ro
+    depends_on:
+      - ivy
+      - elasticsearch
 
-#   elasticsearch:
-#     container_name: elasticsearch
-#     image: docker.elastic.co/elasticsearch/elasticsearch:8.4.1
-#     expose:
-#       - 9200
-#       - 9300
+  elasticsearch:
+    container_name: elasticsearch
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.4.1
+    expose:
+      - 9200
+      - 9300
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+      - ./data/es-logs:/usr/share/elasticsearch/logs
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms1g -Xmx1g"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
 
-#   kibana:
-#     container_name: kibana
-#     image: docker.elastic.co/kibana/kibana:8.4.1
-#     ports:
-#       - 5601:5601
-#     volumes:
-#       - ./data-servers-config/kibana.yml:/usr/share/kibana/config/kibana.yml
+  kibana:
+    container_name: kibana
+    image: docker.elastic.co/kibana/kibana:8.4.1
+    ports:
+      - 5601:5601
+    depends_on:
+      - elasticsearch
+    environment:
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
 
 #   grafana:
 #     container_name: grafana
@@ -60,5 +81,8 @@ services:
 #       - grafana-data:/var/lib/grafana
 
 volumes:
+  elasticsearch-data:
+    driver: local
+
   grafana-data:
     driver: local
