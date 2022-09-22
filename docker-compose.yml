@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   streaming-server:
-    container_name: streaming_server
+    container_name: streaming-server
     build: ./streaming-server
     ports:
       - 1935:1935 # rtmp
@@ -11,16 +11,18 @@ services:
       - ./data/video-stream:/tmp/hls
     depends_on:
       - app-server
-    extra_hosts:
-      - host.docker.internal:host-gateway
+    networks:
+      - traffic-logic
 
   app-server:
-    container_name: app_server
+    container_name: app-server
     build: ./app-server
     ports:
       - 6969:8080
     environment:
       - TRAFFIC_LOGIC_PASSWORD=secret419
+    networks:
+      - traffic-logic
 
   ivy:
     container_name: ivy
@@ -43,6 +45,8 @@ services:
     depends_on:
       - ivy
       - elasticsearch
+    networks:
+      - traffic-logic
 
   elasticsearch:
     container_name: elasticsearch
@@ -52,7 +56,6 @@ services:
       - 9300
     volumes:
       - elasticsearch-data:/usr/share/elasticsearch/data
-      - ./data/es-logs:/usr/share/elasticsearch/logs
     environment:
       - discovery.type=single-node
       - xpack.security.enabled=false
@@ -62,6 +65,8 @@ services:
       memlock:
         soft: -1
         hard: -1
+    networks:
+      - traffic-logic
 
   kibana:
     container_name: kibana
@@ -72,17 +77,15 @@ services:
       - elasticsearch
     environment:
       - ELASTICSEARCH_URL=http://elasticsearch:9200
-
-#   grafana:
-#     container_name: grafana
-#     image: grafana/grafana-oss:latest
-#     restart: always
-#     volumes:
-#       - grafana-data:/var/lib/grafana
+    networks:
+      - traffic-logic
 
 volumes:
   elasticsearch-data:
+    name: elasticsearch-data
     driver: local
 
-  grafana-data:
-    driver: local
+networks:
+  traffic-logic:
+    name: traffic-logic
+    driver: bridge
